@@ -24,7 +24,7 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use("/", (req, res) => res.send("Hi and Welcome"));
+app.get("/", (req, res) => res.send("Hi and Welcome"));
 app.use("/users", userRouter);
 app.use("/images", imagesRouter);
 app.use("/orders", ordersRouter);
