@@ -51,7 +51,7 @@ router.post("/login", async (req, res) => {
       const token = await jwt.sign(
         { email: existingUser.email },
         process.env.PRIVATE_KEY,
-        { expiresIn: "2m" }
+        { expiresIn: "2d" }
       );
       console.log(token);
 
