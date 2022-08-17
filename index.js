@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 require("dotenv").config();
 const stripe = require("stripe")(
   "sk_test_51LVJMlSBYoi60USZGetxUqucqLC2uS9jdN14mQrALTyCtLnR3IYgBffgBFsVh2qfMXHPF8Q2DW3pYjVEMHKzYpBy00gqfwOsbn"
@@ -20,9 +21,9 @@ const io = new Server(server, {
   methods: ["GET", "POST", "PATCH", "DELETE"],
 });
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors({ origin: new URL("http://localhost:3000"), credentials: true }));
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
 
 app.get("/", (req, res) => res.send("Hi and Welcome"));
 app.use("/users", userRouter);
