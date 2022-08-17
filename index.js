@@ -20,7 +20,7 @@ const io = new Server(server, {
   methods: ["GET", "POST", "PATCH", "DELETE"],
 });
 
-app.use(cors());
+app.use(cors({ origin: new URL("http://localhost:3000") }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -45,7 +45,7 @@ app.post("/create-payment", validateToken, async (req, res) => {
   }
 });
 
-mongoose.connect(`${process.env.MONGO_URL}`, () =>
+mongoose.connect(`${process.env.MONGO_URL}`, { useNewUrlparser: true }, () =>
   console.log("Mongodb connected")
 );
 mongoose.connection.on("error", (err) => {
