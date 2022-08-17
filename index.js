@@ -21,7 +21,7 @@ const io = new Server(server, {
 });
 
 app.use(cors({ origin: new URL("http://localhost:3000") }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.get("/", (req, res) => res.send("Hi and Welcome"));
