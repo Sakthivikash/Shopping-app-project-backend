@@ -20,7 +20,7 @@ const io = new Server(server, {
   methods: ["GET", "POST", "PATCH", "DELETE"],
 });
 
-app.use(cors({ origin: new URL("http://localhost:3000") }));
+app.use(cors({ origin: new URL("http://localhost:3000"), credentials: true }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
