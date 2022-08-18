@@ -55,9 +55,9 @@ router.post("/login", async (req, res) => {
       );
       console.log(token);
 
-      existingUser.token = token;
-      existingUser.markModified("token");
-      existingUser.save();
+      // existingUser.token = token;
+      // existingUser.markModified("token");
+      // existingUser.save();
       return res.status(200).json(token);
     }
   } catch (err) {
