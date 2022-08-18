@@ -1,106 +1,61 @@
 const router = require("express").Router();
 const User = require("../models/User");
-const bcrypt = require("bcrypt");
+const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
-const { validateToken } = require("../verifyToken");
 
-//Register Account:
+//REGISTER
 router.post("/signup", async (req, res) => {
-  const { name, email, password } = req.body;
+  const newUser = new User({
+    username: req.body.username,
+    email: req.body.email,
+    password: CryptoJS.AES.encrypt(
+      req.body.password,
+      process.env.PRIVATE_KEY
+    ).toString(),
+  });
 
   try {
-    const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPass = await bcrypt.hash(req.body.password, salt);
-      const newUser = await new User({
-        name,
-        email,
-        password: hashedPass,
-      });
-      const user = await newUser.save();
-      return res.status(201).json(user);
-    } else {
-      return res.status(404).json("User already exists");
-    }
-  } catch (error) {
-    console.log(error);
-    return res.send(error);
-  }
-});
-
-//Login:
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  let existingUser;
-  try {
-    existingUser = await User.findOne({ email });
-
-    if (!existingUser) {
-      return res.status(400).json("Wrong credentials");
-    } else {
-      const validPassword = await bcrypt.compareSync(
-        password,
-        existingUser.password
-      );
-
-      if (!validPassword) {
-        return res.status(400).json("Wrong credentials");
-      }
-
-      const token = await jwt.sign(
-        { email: existingUser.email },
-        process.env.PRIVATE_KEY,
-        { expiresIn: "2d" }
-      );
-      console.log(token);
-      // existingUser.token = token;
-      // existingUser.markModified("token");
-      // await existingUser.save();
-      return res.status(200).json({ existingUser, token });
-    }
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
   } catch (err) {
-    res.send(err);
+    res.status(500).json(err);
   }
 });
 
-// get users;
+//LOGIN
 
-router.get("/", validateToken, async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
-    const users = await User.find({ isAdmin: false }).populate("orders");
-    res.json(users);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-
-// get user orders
-
-router.get("/:id/orders", validateToken, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const user = await User.findById(id).populate("orders").sort({ date: -1 });
-    res.json(user.orders);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-
-// update user notifcations
-router.post("/:id/updateNotifications", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const user = await User.findById(id);
-    user.notifications.forEach((notif) => {
-      notif.status = "read";
+    const user = await User.findOne({
+      email: req.body.email,
     });
-    user.markModified("notifications");
-    await user.save();
-    res.status(200).send();
-  } catch (e) {
-    res.status(400).send(e.message);
+
+    !user && res.status(401).json("Wrong User Name");
+
+    const hashedPassword = CryptoJS.AES.decrypt(
+      user.password,
+      process.env.PASS_SEC
+    );
+
+    const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
+
+    const inputPassword = req.body.password;
+
+    originalPassword != inputPassword && res.status(401).json("Wrong Password");
+
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        isAdmin: user.isAdmin,
+      },
+      process.env.JWT_SEC,
+      { expiresIn: "3d" }
+    );
+
+    const { password, ...others } = user._doc;
+    res.status(200).json({ ...others, accessToken });
+  } catch (err) {
+    res.status(500).json(err);
   }
 });
 
