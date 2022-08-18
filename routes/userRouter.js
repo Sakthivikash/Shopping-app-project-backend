@@ -25,7 +25,7 @@ router.post("/signup", async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    return res.send(error);
+    return res.status(500).send(error);
   }
 });
 
@@ -53,15 +53,15 @@ router.post("/login", async (req, res) => {
         process.env.PRIVATE_KEY,
         { expiresIn: "2d" }
       );
-      console.log(token);
+      console.log(token, process.env.PRIVATE_KEY);
 
-      // existingUser.token = token;
-      // existingUser.markModified("token");
-      // existingUser.save();
-      return res.status(200).json(existingUser, process.env.PRIVATE_KEY, token);
+      existingUser.token = token;
+      existingUser.markModified("token");
+      existingUser.save();
+      return res.status(200).json(existingUser);
     }
   } catch (err) {
-    res.send(err);
+    res.status(500).send(err);
   }
 });
 
