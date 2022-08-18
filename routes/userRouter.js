@@ -25,7 +25,7 @@ router.post("/signup", async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    return res.status(500).send(error);
+    return res.send(error);
   }
 });
 
@@ -37,7 +37,7 @@ router.post("/login", async (req, res) => {
     existingUser = await User.findOne({ email });
 
     if (!existingUser) {
-      return res.status(400).json(" You did Wrong credentials");
+      return res.status(400).json("Wrong credentials");
     } else {
       const validPassword = await bcrypt.compareSync(
         password,
@@ -47,32 +47,23 @@ router.post("/login", async (req, res) => {
       if (!validPassword) {
         return res.status(400).json("Wrong credentials");
       }
-      const result = GenerateToken(existingUser.email);
-      return res.status(200).json(result);
+
+      const token = await jwt.sign(
+        { email: existingUser.email },
+        process.env.PRIVATE_KEY,
+        { expiresIn: "2d" }
+      );
+      console.log(token);
+
+      // existingUser.token = token;
+      // existingUser.markModified("token");
+      // existingUser.save();
+      return res.status(200).json(existingUser, process.env.PRIVATE_KEY, token);
     }
   } catch (err) {
-    res.status(500).send(err);
+    res.send(err);
   }
 });
-
-//Generate Token :
-async function GenerateToken(email) {
-  try {
-    const user = await User.findOne({ email });
-    const token = await jwt.sign(
-      { email: existingUser.email },
-      process.env.PRIVATE_KEY,
-      { expiresIn: "2d" }
-    );
-    console.log(token);
-    user.token = token;
-    await user.markModified("token");
-    await user.save();
-    return user;
-  } catch (error) {
-    res.send(error);
-  }
-}
 
 // get users;
 
