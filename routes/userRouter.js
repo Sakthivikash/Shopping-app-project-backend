@@ -37,7 +37,7 @@ router.post("/login", async (req, res) => {
     existingUser = await User.findOne({ email });
 
     if (!existingUser) {
-      return res.status(400).json("Wrong credentials");
+      return res.status(400).json(" You did Wrong credentials");
     } else {
       const validPassword = await bcrypt.compareSync(
         password,
