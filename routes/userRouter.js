@@ -48,17 +48,17 @@ router.post("/login", async (req, res) => {
         return res.status(400).json("Wrong credentials");
       }
 
-      const token = await jwt.sign(
-        { email: existingUser.email },
-        process.env.PRIVATE_KEY,
-        { expiresIn: "2d" }
-      );
-      console.log(token);
+      // const token = await jwt.sign(
+      //   { email: existingUser.email },
+      //   process.env.PRIVATE_KEY,
+      //   { expiresIn: "2d" }
+      // );
+      // console.log(token);
 
-      // existingUser.token = token;
-      // existingUser.markModified("token");
-      // existingUser.save();
-      return res.status(200).json(token);
+      // // existingUser.token = token;
+      // // existingUser.markModified("token");
+      // // existingUser.save();
+      return res.status(200).json(existingUser);
     }
   } catch (err) {
     res.status(500).send(err);
