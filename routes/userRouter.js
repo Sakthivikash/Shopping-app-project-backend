@@ -57,8 +57,8 @@ router.post("/login", async (req, res) => {
       if (token) {
         existingUser.token = token;
         existingUser.markModified("token");
-        existingUser.save();
-        return res.status(200).json(existingUser);
+        await existingUser.save();
+        return res.status(200).json({ existingUser, token });
       } else {
         res.send("token is not created");
       }
