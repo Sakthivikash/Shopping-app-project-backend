@@ -1,61 +1,107 @@
 const router = require("express").Router();
 const User = require("../models/User");
-const CryptoJS = require("crypto-js");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { validateToken } = require("../verifyToken");
 
-//REGISTER
+//Register Account:
 router.post("/signup", async (req, res) => {
-  const newUser = new User({
-    name: req.body.name,
-    email: req.body.email,
-    password: CryptoJS.AES.encrypt(
-      req.body.password,
-      process.env.PRIVATE_KEY
-    ).toString(),
-  });
+  const { name, email, password } = req.body;
 
   try {
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  } catch (err) {
-    res.status(500).json(err);
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPass = await bcrypt.hash(req.body.password, salt);
+      const newUser = await new User({
+        name,
+        email,
+        password: hashedPass,
+      });
+      const user = await newUser.save();
+      return res.status(201).json(user);
+    } else {
+      return res.status(404).json("User already exists");
+    }
+  } catch (error) {
+    console.log(error);
+    return res.send(error);
   }
 });
 
-//LOGIN
-
+//Login:
 router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  let existingUser;
   try {
-    const user = await User.findOne({
-      email: req.body.email,
-    });
+    existingUser = await User.findOne({ email });
 
-    !user && res.status(401).json("Wrong User Name");
+    if (!existingUser) {
+      return res.status(400).json("Wrong credentials");
+    } else {
+      const validPassword = await bcrypt.compareSync(
+        password,
+        existingUser.password
+      );
 
-    const hashedPassword = CryptoJS.AES.decrypt(
-      user.password,
-      process.env.PASS_SEC
-    );
+      if (!validPassword) {
+        return res.status(400).json("Wrong credentials");
+      }
 
-    const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
+      const token = await jwt.sign(
+        { email: existingUser.email },
+        process.env.PRIVATE_KEY,
+        { expiresIn: "2d" }
+      );
+      console.log(token);
 
-    const inputPassword = req.body.password;
-
-    originalPassword != inputPassword && res.status(401).json("Wrong Password");
-
-    const accessToken = jwt.sign(
-      {
-        id: user._id,
-        isAdmin: user.isAdmin,
-      },
-      process.env.JWT_SEC,
-      { expiresIn: "3d" }
-    );
-
-    const { password, ...others } = user._doc;
-    res.status(200).json({ ...others, accessToken });
+      existingUser.token = token;
+      existingUser.markModified("token");
+      existingUser.save();
+      return res.status(200).json(existingUser);
+    }
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).send(err);
+  }
+});
+
+// get users;
+
+router.get("/", validateToken, async (req, res) => {
+  try {
+    const users = await User.find({ isAdmin: false }).populate("orders");
+    res.json(users);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
+
+// get user orders
+
+router.get("/:id/orders", validateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(id).populate("orders").sort({ date: -1 });
+    res.json(user.orders);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
+
+// update user notifcations
+router.post("/:id/updateNotifications", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    user.notifications.forEach((notif) => {
+      notif.status = "read";
+    });
+    user.markModified("notifications");
+    await user.save();
+    res.status(200).send();
+  } catch (e) {
+    res.status(400).send(e.message);
   }
 });
 
