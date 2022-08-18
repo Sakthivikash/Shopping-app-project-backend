@@ -54,14 +54,10 @@ router.post("/login", async (req, res) => {
         { expiresIn: "2d" }
       );
       console.log(token);
-      if (token) {
-        existingUser.token = token;
-        existingUser.markModified("token");
-        await existingUser.save();
-        return res.status(200).json({ existingUser, token });
-      } else {
-        res.send("token is not created");
-      }
+      // existingUser.token = token;
+      // existingUser.markModified("token");
+      // await existingUser.save();
+      return res.status(200).json({ existingUser, token });
     }
   } catch (err) {
     res.send(err);
