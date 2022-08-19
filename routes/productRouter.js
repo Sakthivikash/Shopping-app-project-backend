@@ -26,7 +26,7 @@ router.post("/new-product", validateToken, async (req, res) => {
 });
 
 //Update the product:
-router.patch("/:id", validateToken, async (req, res) => {
+router.patch("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const updateProduct = await Product.findByIdAndUpdate(id, req.body);
@@ -82,7 +82,6 @@ router.get("/category/:category", validateToken, async (req, res) => {
 });
 
 // cart routes
-
 router.post("/add-to-cart", async (req, res) => {
   const { userId, productId, price } = req.body;
   try {
@@ -104,6 +103,7 @@ router.post("/add-to-cart", async (req, res) => {
   }
 });
 
+//Increase the quantity of the item in the cart
 router.post("/increase-cart", validateToken, async (req, res) => {
   const { userId, productId, price } = req.body;
   try {
@@ -121,6 +121,7 @@ router.post("/increase-cart", validateToken, async (req, res) => {
   }
 });
 
+//Decrease the quantity of the item in the cart
 router.post("/decrease-cart", async (req, res) => {
   const { userId, productId, price } = req.body;
   try {
@@ -138,6 +139,7 @@ router.post("/decrease-cart", async (req, res) => {
   }
 });
 
+//Remove Item from the cart
 router.post("/remove-from-cart", async (req, res) => {
   const { userId, productId, price } = req.body;
   try {
