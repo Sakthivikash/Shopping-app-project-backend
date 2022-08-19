@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
 });
 
 //Create a product:
-router.post("/new-product", validateToken, async (req, res) => {
+router.post("/new-product", async (req, res) => {
   try {
     const newProduct = await new Product(req.body);
     await newProduct.save();
