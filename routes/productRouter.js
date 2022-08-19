@@ -83,7 +83,7 @@ router.get("/category/:category", validateToken, async (req, res) => {
 
 // cart routes
 
-router.post("/add-to-cart", validateToken, async (req, res) => {
+router.post("/add-to-cart", async (req, res) => {
   const { userId, productId, price } = req.body;
   try {
     const user = await User.findById(userId);
