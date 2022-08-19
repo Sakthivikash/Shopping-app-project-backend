@@ -17,13 +17,18 @@ const { validateToken } = require("./verifyToken");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: "http://localhost:3000",
+  cors: "https://golden-starlight-260a12.netlify.app",
   methods: ["GET", "POST", "PATCH", "DELETE"],
 });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors({ origin: new URL("http://localhost:3000"), credentials: true }));
+app.use(
+  cors({
+    origin: new URL("https://golden-starlight-260a12.netlify.app"),
+    credentials: true,
+  })
+);
 
 app.get("/", (req, res) => res.send("Hi and Welcome"));
 app.use("/users", userRouter);
