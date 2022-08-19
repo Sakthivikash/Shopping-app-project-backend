@@ -53,7 +53,6 @@ router.post("/login", async (req, res) => {
         process.env.PRIVATE_KEY,
         { expiresIn: "2d" }
       );
-      console.log(token, process.env.PRIVATE_KEY);
 
       existingUser.token = token;
       existingUser.markModified("token");
